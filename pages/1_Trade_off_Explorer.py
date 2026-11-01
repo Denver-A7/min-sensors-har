@@ -8,6 +8,9 @@ import utils
 # Set the browser tab title and icon, and use the full page width for the chart.
 st.set_page_config(page_title="Trade-off Explorer", page_icon="⚖️", layout="wide")
 
+# Add the custom look (fonts, background, cards).
+utils.apply_style()
+
 # Show the page title.
 st.title("Trade-off Explorer")
 
@@ -125,6 +128,7 @@ fig.update_layout(
     legend=dict(title="Model"),
     height=600,
 )
+utils.style_chart(fig)
 
 st.plotly_chart(fig, width="stretch")
 

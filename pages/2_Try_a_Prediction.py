@@ -10,6 +10,9 @@ import utils
 # Set the browser tab title and icon.
 st.set_page_config(page_title="Try a Prediction", page_icon="🎯")
 
+# Add the custom look (fonts, background, cards).
+utils.apply_style()
+
 # Show the page title.
 st.title("Try a Prediction")
 
@@ -145,6 +148,7 @@ if hasattr(model, "predict_proba"):
         font=dict(size=16),
         height=420,
     )
+    utils.style_chart(fig)
     st.plotly_chart(fig, width="stretch")
     st.caption("Yellow bar = the true activity.")
 else:

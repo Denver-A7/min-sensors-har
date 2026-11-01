@@ -7,6 +7,9 @@ import utils
 # Set the browser tab title and icon.
 st.set_page_config(page_title="About and Limits", page_icon="ℹ️", layout="wide")
 
+# Add the custom look (fonts, background, cards).
+utils.apply_style()
+
 # Show the page title.
 st.title("About and Limits")
 

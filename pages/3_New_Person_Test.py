@@ -8,6 +8,9 @@ import utils
 # Set the browser tab title and icon.
 st.set_page_config(page_title="New Person Test", page_icon="🧑", layout="wide")
 
+# Add the custom look (fonts, background, cards).
+utils.apply_style()
+
 # Show the page title.
 st.title("New Person Test")
 
@@ -104,6 +107,7 @@ fig.update_layout(
     font=dict(size=16),
     height=550,
 )
+utils.style_chart(fig)
 st.plotly_chart(fig, width="stretch")
 
 # ---------- One volunteer ----------

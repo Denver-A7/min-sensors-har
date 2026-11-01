@@ -6,8 +6,22 @@ import utils
 # Set the browser tab title and use the full page width.
 st.set_page_config(page_title="How Few Sensors?", layout="wide")
 
-# Show the page title.
-st.title("How Few Sensors Does a Wearable Need?")
+# Add the custom look (fonts, background, cards).
+utils.apply_style()
+
+# Show the hero card at the top of the home page.
+st.markdown(
+    '<div class="hero">'
+    '<div class="hero-title">How Few Sensors Does a Wearable Need?</div>'
+    '<div class="hero-text">We test how much sensor data a wearable really needs to know what you are doing.</div>'
+    '<div class="hero-pills">'
+    '<span class="hero-pill">Public data</span>'
+    '<span class="hero-pill">3 models</span>'
+    '<span class="hero-pill">Leave one person out test</span>'
+    '</div>'
+    '</div>',
+    unsafe_allow_html=True,
+)
 
 # Warn if the result files or models are test data.
 utils.show_banner(["results_summary.csv", "models"])

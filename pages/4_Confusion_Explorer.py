@@ -7,6 +7,9 @@ import utils
 # Set the browser tab title and icon.
 st.set_page_config(page_title="Confusion Explorer", page_icon="🔍", layout="wide")
 
+# Add the custom look (fonts, background, cards).
+utils.apply_style()
+
 # Show the page title.
 st.title("Confusion Explorer")
 
@@ -128,6 +131,7 @@ fig.update_layout(
         autorange="reversed",
     ),
 )
+utils.style_chart(fig)
 st.plotly_chart(fig, use_container_width=True)
 
 # ---------- Most confused pairs ----------

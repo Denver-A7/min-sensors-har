@@ -1,0 +1,11 @@
+{
+  "real": {
+    "results_summary.csv": true,
+    "loso_by_volunteer.csv": true,
+    "per_class_metrics.csv": true,
+    "confusion_matrices.csv": true,
+    "sensor_tiers.csv": false,
+    "models": true
+  },
+  "sklearn_version": "1.6.1"
+}

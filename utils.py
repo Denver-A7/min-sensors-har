@@ -36,7 +36,7 @@ ACTIVITIES = [
 ]
 
 # Main chart colors.
-BLUE = "#1F4E9C"
+BLUE = "#5B9BFF"
 YELLOW = "#F2B705"
 
 

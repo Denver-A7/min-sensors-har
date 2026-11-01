@@ -36,6 +36,6 @@ machine learning project. Follow these rules in every answer.
 
 ## Streamlit rules
 - Use st.cache_data for reading CSV files and st.cache_resource for loading models.
-- Use plotly for charts. Use blue (#1F4E9C) and yellow (#F2B705) as the main colors. Use large text and labeled axes.
+- Use plotly for charts. Use blue (#5B9BFF) and yellow (#F2B705) as the main colors. Use large text and labeled axes.
 - Never crash. Handle missing files and empty selections with a friendly message.
 - No internet calls. No API keys. No tracking.

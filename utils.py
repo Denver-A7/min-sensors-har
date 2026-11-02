@@ -284,6 +284,35 @@ def apply_style():
     text-overflow: clip;
 }
 
+/* Rule check card on the Home page: smaller text, no broken words. */
+.stApp .st-key-rule_check [data-testid="stMetricValue"],
+.stApp .st-key-rule_check [data-testid="stMetricValue"] p {
+    font-size: 1.4rem;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+/* Keyed wrappers are invisible: only the metric cards inside show a border. */
+.stApp [data-testid="stLayoutWrapper"] > [data-testid="stVerticalBlock"].st-key-rule_check,
+.stApp [data-testid="stLayoutWrapper"] > [data-testid="stVerticalBlock"].st-key-rule_check:hover,
+.stApp [data-testid="stLayoutWrapper"] > [data-testid="stVerticalBlock"].st-key-main_results,
+.stApp [data-testid="stLayoutWrapper"] > [data-testid="stVerticalBlock"].st-key-main_results:hover {
+    background: none;
+    border: none;
+    box-shadow: none;
+    transform: none;
+    padding: 0;
+}
+
+/* Home main results: all six cards the same height, text centered. */
+.stApp .st-key-main_results [data-testid="stMetric"] {
+    min-height: 120px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
 /* Tabs: pills, blue when active, yellow underline. */
 .stApp [role="tablist"] { gap: 0.4rem; }
 .stApp [data-testid="stTab"] {

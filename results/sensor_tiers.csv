@@ -1,4 +1,4 @@
 tier,name,group,kfold_acc,loso_acc,power_value,power_unit,power_mode,datasheet_ref,note
-1,Accelerometer only,accel_only,0.951,0.912,25,uA,"Low-power mode, ODR 52 Hz, typical","[5] LSM6DSL datasheet, Rev 7 (Sept 2017), Table 4, page 24 (row LA_IddLM)","Accuracy is logistic regression."
-2,Gyroscope only,gyro_only,0.858,0.804,265,uA,"Low-power mode, ODR 52 Hz, typical","[5] Rev 7, Table 4, page 24 (row IddLP minus row LA_IddLM)","Calculated: both sensors 290 uA minus accelerometer 25 uA. The datasheet has no gyroscope only row."
-3,Both sensors (full set),both,0.985,0.957,290,uA,"Low-power mode, ODR 52 Hz, typical","[5] LSM6DSL datasheet, Rev 7 (Sept 2017), Table 4, page 24 (row IddLP)","Accuracy is logistic regression."
+1,Accelerometer only,accel_only,0.951,0.912,25,uA,"Low-power mode, ODR 52 Hz, typical","[5] LSM6DSL datasheet, Rev 7 (Sept 2017), Table 4, page 24 (row LA_IddLM)","datasheet value"
+2,Gyroscope only,gyro_only,0.858,0.804,265,uA,"Low-power mode, ODR 52 Hz, typical","[5] Rev 7, Table 4, page 24 (row IddLP minus row LA_IddLM)","calculated: both sensors minus accelerometer"
+3,Both sensors (full set),both,0.985,0.957,290,uA,"Low-power mode, ODR 52 Hz, typical","[5] LSM6DSL datasheet, Rev 7 (Sept 2017), Table 4, page 24 (row IddLP)","datasheet value"

@@ -135,6 +135,22 @@ def pct(x):
     return f"{x * 100:.1f}%"
 
 
+# Default numbers for the "reliable" rule (all in percent or percentage points).
+RULE_MIN_ACC = 90
+RULE_MAX_DROP = 5.0
+RULE_BORDERLINE = 2.0
+
+
+# Apply the reliable rule. Inputs are LOSO accuracies in percent for the same model.
+# Returns (reliable, borderline). Reliable needs accuracy >= min_acc and a drop from the full set <= max_drop.
+def check_reliable(acc, full_acc, min_acc=RULE_MIN_ACC, max_drop=RULE_MAX_DROP):
+    if pd.isna(acc) or pd.isna(full_acc):
+        return False, False
+    reliable = acc >= min_acc - 1e-9 and (full_acc - acc) <= max_drop + 1e-9
+    borderline = reliable and acc < min_acc + RULE_BORDERLINE
+    return reliable, borderline
+
+
 # Give a plotly chart the app font and very faint grid lines. Data and labels stay the same.
 def style_chart(fig):
     fig.update_layout(font=dict(family="Inter, sans-serif"))

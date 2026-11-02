@@ -60,7 +60,7 @@ else:
     if pd.notna(row["kfold_acc_mean"]):
         kfold_acc = row["kfold_acc_mean"]
     col1, col2, col3 = st.columns(3)
-    col1.metric("K fold accuracy", pct_or_na(row["kfold_acc_mean"]))
+    col1.metric("5 fold accuracy", pct_or_na(row["kfold_acc_mean"]))
     col2.metric("LOSO accuracy", pct_or_na(row["loso_acc_mean"]))
     col3.metric("Gap in points", f"{row['gap_points']:.1f}" if pd.notna(row["gap_points"]) else "n/a")
 
@@ -89,7 +89,7 @@ if kfold_acc is not None:
         line_dash="dash",
         line_color=utils.YELLOW,
         line_width=3,
-        annotation_text=f"K fold accuracy: {utils.pct(kfold_acc)}",
+        annotation_text=f"5 fold accuracy: {utils.pct(kfold_acc)}",
         annotation_position="top left",
         annotation_font=dict(size=16, color=utils.YELLOW),
     )
@@ -127,6 +127,33 @@ st.write(
     f"The best volunteer is {best['volunteer_label']} with {utils.pct(best['accuracy'])}. "
     f"The worst volunteer is {worst['volunteer_label']} with {utils.pct(worst['accuracy'])}."
 )
+
+# ---------- Official test volunteers ----------
+st.subheader("Check on the 9 official test volunteers")
+
+# The volunteers of the official UCI HAR test set.
+OFFICIAL_TEST_VOLUNTEERS = [2, 4, 9, 10, 12, 13, 18, 20, 24]
+
+
+# Return the mean accuracy of the given rows as a percent text, or "n/a" if there are no rows.
+def mean_text(rows):
+    return pct_or_na(rows["accuracy"].mean()) if len(rows) else "n/a"
+
+
+# Split the volunteers of this choice into the official test group and all the others.
+is_official = data["volunteer"].astype(int).isin(OFFICIAL_TEST_VOLUNTEERS)
+official = data[is_official]
+others = data[~is_official]
+
+col_x, col_y = st.columns(2)
+col_x.metric(f"Mean accuracy, official test volunteers ({len(official)})", mean_text(official))
+col_y.metric(f"Mean accuracy, the other volunteers ({len(others)})", mean_text(others))
+if len(official) < len(OFFICIAL_TEST_VOLUNTEERS):
+    st.caption(
+        f"Only {len(official)} of the {len(OFFICIAL_TEST_VOLUNTEERS)} official volunteers "
+        "have rows for this choice."
+    )
+st.write("With only 9 people the number is uncertain (standard error about 2.5 points).")
 
 # ---------- Note ----------
 st.info(

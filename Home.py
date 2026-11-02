@@ -1,4 +1,5 @@
 # Home page of the app.
+import pandas as pd
 import streamlit as st
 
 import utils
@@ -40,6 +41,43 @@ col2.metric("Activities", "6")
 col3.metric("Windows", "10,299")
 col4.metric("Features", "561")
 
+# Show the main results for logistic regression. The rule check uses the LOSO numbers.
+st.subheader("Main results")
+summary_path = utils.BASE_DIR / "results" / "results_summary.csv"
+if not summary_path.exists():
+    st.info("The file results/results_summary.csv is missing, so the main results are not shown.")
+else:
+    summary = utils.load_csv("results_summary.csv")
+    needed = ["model", "group", "kfold_acc_mean", "loso_acc_mean"]
+    rows = None
+    if all(c in summary.columns for c in needed):
+        rows = summary[summary["model"] == "logreg"].drop_duplicates(subset=["group"]).set_index("group")
+    if rows is None or "both" not in rows.index or "accel_only" not in rows.index:
+        st.info("The main results need the logistic regression rows for both and accel_only.")
+    else:
+        # Row 1: 5 fold accuracy for three groups.
+        st.caption(f"{utils.MODELS['logreg']}, 5 fold accuracy")
+        k1, k2, k3 = st.columns(3)
+        for col, group in zip((k1, k2, k3), ("both", "accel_only", "gyro_only")):
+            value = rows["kfold_acc_mean"].get(group)
+            col.metric(utils.GROUPS[group], utils.pct(value) if pd.notna(value) else "n/a")
+
+        # Row 2: LOSO numbers for the accelerometer only, and the rule check.
+        st.caption(f"{utils.MODELS['logreg']}, new person (LOSO), {utils.GROUPS['accel_only']}")
+        loso_acc = rows.loc["accel_only", "loso_acc_mean"] * 100
+        loso_full = rows.loc["both", "loso_acc_mean"] * 100
+        reliable, borderline = utils.check_reliable(loso_acc, loso_full)
+        if borderline:
+            rule_text = "reliable, but borderline"
+        elif reliable:
+            rule_text = "reliable"
+        else:
+            rule_text = "not reliable"
+        l1, l2, l3 = st.columns(3)
+        l1.metric("LOSO accuracy", f"{loso_acc:.1f}%")
+        l2.metric("Points below the full set", f"{loso_full - loso_acc:.1f}")
+        l3.metric("Rule check", rule_text)
+
 # Explain each page of the app in one line.
 st.subheader("Pages in this app")
 st.markdown(
@@ -48,7 +86,7 @@ st.markdown(
 - **Try a Prediction:** pick a test window and see what a model predicts.
 - **New Person Test:** see how the models do on a person they never saw.
 - **Confusion Explorer:** see which activities get mixed up.
-- **Sensor Tiers:** compare sensor choices by accuracy and power use.
+- **Sensor Tiers:** the cheapest setup that is reliable for a new person.
 - **About and Limits:** read how this project was done and what its limits are.
 """
 )
@@ -59,7 +97,7 @@ with st.container(border=True):
     st.markdown(
         """
 - **Accuracy:** the share of windows the model labels correctly.
-- **K fold:** the standard test. The same person can appear in training and test.
+- **5 fold:** the standard test. The same person can appear in training and test.
 - **LOSO:** leave one subject out. The model is tested on a person it never saw.
 """
     )

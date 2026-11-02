@@ -36,9 +36,11 @@ LIMITS = [
     ("Only 30 volunteers", "A small group may not show how all people move."),
     ("Six simple activities", "Real life has many more activities than these six."),
     ("Pre calculated features", "The dataset authors made the 561 features, so we remove groups of features, not real sensors."),
-    ("K fold can be too optimistic", "The same person can be in training and test, so the score can look better than it is."),
+    ("5 fold can be too optimistic", "The same person can be in training and test, so the score can look better than it is."),
     ("Power from one chip", "The gyroscope only power is calculated, not read from the datasheet."),
     ("Summary features only", "The models do not read the order of the raw readings."),
+    ("Sensor current only", "It is not the processor, radio or whole device."),
+    ("Accelerometer only is borderline", "It is reliable, but only just."),
 ]
 
 # Each source is one line, written exactly as given.

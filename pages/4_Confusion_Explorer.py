@@ -25,7 +25,7 @@ if conf.empty:
     st.stop()
 
 # Names of the two test types.
-SPLIT_NAMES = {"kfold": "K fold", "loso": "LOSO"}
+SPLIT_NAMES = {"kfold": "5 fold", "loso": "LOSO"}
 
 # ---------- Sidebar controls ----------
 st.sidebar.header("Controls")

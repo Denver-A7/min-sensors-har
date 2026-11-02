@@ -33,17 +33,23 @@ selected_models = [
     code for code, name in utils.MODELS.items() if st.sidebar.checkbox(name, value=True)
 ]
 
-# Choose the test type. LOSO is disabled when that column has no numbers.
+# Choose the test type. New person (LOSO) is first, so it is the default.
+# LOSO is disabled when that column has no numbers.
+LOSO_LABEL = "New person (LOSO)"
+KFOLD_LABEL = "5 fold cross validation (optimistic: the same person is in train and test)"
 loso_empty = "loso_acc_mean" not in df.columns or df["loso_acc_mean"].isna().all()
-test_type = st.sidebar.radio("Test type", ["K fold", "LOSO"], disabled=loso_empty)
+test_type = st.sidebar.radio("Test type", [LOSO_LABEL, KFOLD_LABEL], disabled=loso_empty)
 if loso_empty:
     st.sidebar.caption("LOSO is not available yet. The loso_acc_mean column is empty.")
-    test_type = "K fold"
-acc_col = "kfold_acc_mean" if test_type == "K fold" else "loso_acc_mean"
+    test_type = KFOLD_LABEL
+acc_col = "loso_acc_mean" if test_type == LOSO_LABEL else "kfold_acc_mean"
 
-# Targets for the two status checks.
-target1 = st.sidebar.slider("Target 1: full set accuracy", 50, 100, 90, 1)
-allowed_drop = st.sidebar.slider("Allowed drop in points", 0.0, 20.0, 5.0, 0.5)
+# Short name of the test, for chart and heading titles.
+test_short = LOSO_LABEL if test_type == LOSO_LABEL else "5 fold"
+
+# Targets for the two status checks. Target 1 is also the accuracy floor for Target 2.
+target1 = st.sidebar.slider("Target 1: full set accuracy", 50, 100, utils.RULE_MIN_ACC, 1)
+allowed_drop = st.sidebar.slider("Allowed drop in points", 0.0, 20.0, utils.RULE_MAX_DROP, 0.5)
 
 # ---------- Prepare the data ----------
 # Keep only the chosen models and rows that have an accuracy value.
@@ -52,9 +58,24 @@ if data.empty:
     st.info("Pick at least one model in the sidebar to see the chart.")
     st.stop()
 
-# Accuracy in percent and the group display name.
+# What each group removes from the full set: sensors or calculations.
+REMOVES = {
+    "accel_only": "Sensor",
+    "gyro_only": "Sensor",
+    "time_only": "Calculation",
+    "freq_only": "Calculation",
+    "both": "Full set",
+}
+
+# Accuracy in percent, the group display name, what it removes, and a label with both.
 data["acc_pct"] = data[acc_col] * 100
 data["group_name"] = data["group"].map(utils.GROUPS).fillna(data["group"])
+data["removes"] = data["group"].map(REMOVES).fillna("")
+data["group_label"] = data.apply(
+    lambda r: f"{r['group_name']} ({r['removes'].lower()})" if r["removes"] == "Full set"
+    else f"{r['group_name']} (removes: {r['removes'].lower()})",
+    axis=1,
+)
 
 # Full set ("both") accuracy per model, used for the drop and the shaded bands.
 full_acc = data[data["group"] == "both"].set_index("model")["acc_pct"]
@@ -71,7 +92,7 @@ def drop_text(drop):
 
 
 # ---------- Chart ----------
-title = f"Accuracy vs. number of features ({test_type})"
+title = f"Accuracy vs. number of features ({test_short})"
 if is_test:
     title += " (TEST DATA)"
 
@@ -100,9 +121,12 @@ for code in selected_models:
             y=sub["acc_pct"],
             mode="markers",
             name=utils.MODELS[code],
-            customdata=sub["group_name"],
+            customdata=sub[["group_label", "removes"]],
             marker=dict(size=12, color=color),
-            hovertemplate="%{customdata}<br>Features: %{x}<br>Accuracy: %{y:.1f}%<extra></extra>",
+            hovertemplate=(
+                "%{customdata[0]}<br>Removes: %{customdata[1]}<br>"
+                "Features: %{x}<br>Accuracy: %{y:.1f}%<extra></extra>"
+            ),
         )
     )
 
@@ -123,7 +147,7 @@ fig.update_layout(
     plot_bgcolor="rgba(0,0,0,0)",
     title=dict(text=title, font=dict(size=24)),
     xaxis_title="Number of features",
-    yaxis_title=f"Accuracy in % ({test_type})",
+    yaxis_title=f"Accuracy in % ({test_short})",
     font=dict(size=16),
     legend=dict(title="Model"),
     height=600,
@@ -139,7 +163,8 @@ st.subheader("All results")
 table = pd.DataFrame(
     {
         "Model": data["model"].map(utils.MODELS),
-        "Group": data["group_name"],
+        "Group": data["group_label"],
+        "Removes": data["removes"],
         "Features": data["n_features"],
         "Accuracy": data[acc_col].map(utils.pct),
         "Drop from full set (points)": data["drop_points"].round(1),
@@ -148,7 +173,7 @@ table = pd.DataFrame(
 st.dataframe(table, hide_index=True, width="stretch")
 
 # ---------- Status boxes ----------
-st.subheader("Targets")
+st.subheader(f"Targets ({test_short})")
 
 for code in selected_models:
     sub = data[data["model"] == code]
@@ -169,18 +194,22 @@ for code in selected_models:
     else:
         col1.warning(f"Target 1 not met: full set accuracy is {both_acc:.1f}% (target {target1}%).")
 
-    # Target 2: the best reduced group stays within the allowed drop of the full set.
+    # Target 2: the best reduced group is at least Target 1 and within the allowed drop of the full set.
     reduced = sub[sub["group"] != "both"]
     if reduced.empty:
         col2.warning("No reduced groups for this model. Cannot check Target 2.")
         continue
     best = reduced.loc[reduced["acc_pct"].idxmax()]
     best_drop = both_acc - best["acc_pct"]
-    best_text = f"Best reduced group: {best['group_name']} ({best['n_features']} features), {drop_text(best_drop)}."
-    if best_drop <= allowed_drop:
-        col2.success(f"Target 2 met (allowed drop {allowed_drop} points). {best_text}")
+    best_text = f"Best reduced group: {best['group_label']} ({best['n_features']} features), {drop_text(best_drop)}."
+    rule_text = f"(at least {target1}% and a drop of at most {allowed_drop} points)"
+    reliable, borderline = utils.check_reliable(best["acc_pct"], both_acc, target1, allowed_drop)
+    if reliable and borderline:
+        col2.warning(f"Target 2 met, but borderline {rule_text}. {best_text}")
+    elif reliable:
+        col2.success(f"Target 2 met {rule_text}. {best_text}")
     else:
-        col2.warning(f"Target 2 not met (allowed drop {allowed_drop} points). {best_text}")
+        col2.warning(f"Target 2 not met {rule_text}. {best_text}")
 
 # ---------- Largest drop between neighbors ----------
 # Sort each model's groups by n_features and find the biggest loss between two neighbors.

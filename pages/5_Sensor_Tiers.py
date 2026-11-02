@@ -1,4 +1,4 @@
-# Sensor Tiers page: find the cheapest sensor tier that keeps enough accuracy.
+# Sensor Tiers page: find the cheapest sensor tier that is reliable for a new person.
 import pandas as pd
 import streamlit as st
 
@@ -38,6 +38,11 @@ if missing:
 if tiers.empty:
     st.info("The file results/sensor_tiers.csv has no rows yet.")
     st.stop()
+summary_columns = ["model", "group", "kfold_acc_mean", "loso_acc_mean"]
+missing = [c for c in summary_columns if c not in summary.columns]
+if missing:
+    st.error("The file results/results_summary.csv is missing these columns: " + ", ".join(missing))
+    st.stop()
 
 
 # Return text for a table cell, or the given words if the cell is empty.
@@ -62,19 +67,65 @@ def power_text(row):
     return " ".join(p for p in parts if p)
 
 
-# Put the tiers in order: Tier 1 first (cheapest), Tier 3 last (full set).
+# Return "yes" or "no" for a table cell.
+def yes_no(value):
+    return "yes" if value else "no"
+
+
+# Put the tiers in order: Tier 1 first, Tier 3 last (full set).
 tiers = tiers.sort_values("tier").reset_index(drop=True)
+
+# ---------- The rule and the controls ----------
+st.subheader("The rule")
+st.write(
+    "A setup is reliable if both are true for the same model, on the new person (LOSO) test: "
+    "its accuracy is at least the minimum accuracy, and it is at most the allowed drop below "
+    f"the full set. If a reliable setup is less than {utils.RULE_BORDERLINE:.0f} points above "
+    "the minimum accuracy, it is borderline."
+)
+
+# The model comes first in the list, so logistic regression is the default.
+model = st.selectbox(
+    "Model", list(utils.MODELS.keys()), format_func=lambda code: utils.MODELS[code]
+)
+col_a, col_b = st.columns(2)
+min_acc = col_a.slider("Minimum accuracy (%)", 50, 100, utils.RULE_MIN_ACC, 1)
+allowed_drop = col_b.slider("Allowed drop from the full set (points)", 0.0, 15.0, utils.RULE_MAX_DROP, 0.5)
+
+# Accuracy of the chosen model for each group, taken from results_summary.csv.
+model_rows = summary[summary["model"] == model].drop_duplicates(subset=["group"]).set_index("group")
+kfold_by_group = model_rows["kfold_acc_mean"]
+loso_by_group = model_rows["loso_acc_mean"]
+
+# The full set LOSO accuracy is the reference. Without it we cannot apply the rule.
+if "both" not in loso_by_group.index or pd.isna(loso_by_group["both"]):
+    st.info("There is no LOSO accuracy for the full set (both) with this model.")
+    st.stop()
+full_loso = loso_by_group["both"] * 100
+
+# Add the LOSO accuracy (in percent), the drop and the two rule results to each tier.
+tiers["loso_pct"] = tiers["group"].map(lambda g: loso_by_group.get(g, float("nan")) * 100)
+tiers["below_full"] = full_loso - tiers["loso_pct"]
+checks = [utils.check_reliable(a, full_loso, min_acc, allowed_drop) for a in tiers["loso_pct"]]
+tiers["reliable"] = [c[0] for c in checks]
+tiers["borderline"] = [c[1] for c in checks]
 
 # ---------- Tier table ----------
 st.subheader("Tier table")
+st.write(f"Accuracy shown for: {utils.MODELS[model]}")
 
 # Build a table with readable column names.
 table = pd.DataFrame({
     "Tier": tiers["tier"],
     "Name": tiers["name"],
     "Sensor group": tiers["group"].map(utils.GROUPS).fillna(tiers["group"]),
-    "K fold accuracy": tiers["kfold_acc"].map(pct_or_na),
-    "LOSO accuracy": tiers["loso_acc"].map(pct_or_na),
+    "5 fold accuracy": tiers["group"].map(kfold_by_group).map(pct_or_na),
+    "LOSO accuracy": (tiers["loso_pct"] / 100).map(pct_or_na),
+    "Points below the full set": tiers["below_full"].map(
+        lambda v: "not available" if pd.isna(v) else f"{v:.1f}"
+    ),
+    "Reliable": tiers["reliable"].map(yes_no),
+    "Borderline": tiers["borderline"].map(yes_no),
     "Power": tiers.apply(power_text, axis=1),
     "Power mode": tiers["power_mode"].map(lambda v: text_or(v, "not filled yet")),
     "Datasheet": tiers["datasheet_ref"].map(lambda v: text_or(v, "not filled yet")),
@@ -84,59 +135,39 @@ st.dataframe(table, hide_index=True, use_container_width=True)
 
 # Note about where the power numbers come from.
 st.caption(
-    "Power numbers come from one chip's datasheet [5]. They show the size of the savings, "
-    "not an exact value for any product.\n\n"
-    "Time domain only and frequency domain only use the same sensors, so they change "
-    "the amount of calculation, not the sensor power."
+    "Sensor chip only (LSM6DSL, low-power mode, 52 Hz), from the datasheet. "
+    "The gyroscope value (265 uA) is calculated as 290 minus 25. "
+    "One chip is an example, not a rule. It is not the power of a whole device."
 )
 
 # ---------- Find the cheapest tier ----------
 st.subheader("Find the cheapest tier")
 
-# Controls: the model and how much accuracy we can lose.
-model = st.selectbox(
-    "Model", list(utils.MODELS.keys()), format_func=lambda code: utils.MODELS[code]
-)
-allowed_drop = st.slider(
-    "How many points of accuracy can you lose compared with the full set?",
-    0.0, 15.0, 5.0, 0.5,
-)
-
-# Keep only the rows of the chosen model that have an accuracy.
-model_rows = summary[summary["model"] == model].dropna(subset=["kfold_acc_mean"])
-acc_by_group = model_rows.set_index("group")["kfold_acc_mean"]
-
-# The full set accuracy is the reference. Without it we cannot compare.
-if "both" not in acc_by_group.index:
-    st.info("There is no K fold accuracy for the full set (both) with this model.")
-    st.stop()
-full_acc = acc_by_group["both"] * 100
-
-# Go from the cheapest tier up. Take the first reduced tier inside the allowed drop.
-chosen = None
-for _, row in tiers.iterrows():
-    if row["group"] == "both" or row["group"] not in acc_by_group.index:
-        continue
-    acc = acc_by_group[row["group"]] * 100
-    drop = full_acc - acc
-    if drop <= allowed_drop + 1e-9:
-        chosen = (row, acc, drop)
-        break
+# The cheapest tier is the reliable tier with the lowest power value.
+tiers["power_num"] = pd.to_numeric(tiers["power_value"], errors="coerce")
+candidates = tiers[tiers["reliable"] & tiers["power_num"].notna()]
 
 # Show the result in a highlighted box.
-if chosen is None:
+if candidates.empty:
     st.info(
-        f"The full set is the only option at this setting. "
-        f"No reduced tier stays within {allowed_drop:.1f} points of the full set "
-        f"({full_acc:.1f}%)."
+        "No tier is reliable with these settings. "
+        f"Try a lower minimum accuracy or a larger allowed drop. Full set accuracy: {full_loso:.1f}%."
     )
 else:
-    row, acc, drop = chosen
-    group_name = utils.GROUPS.get(row["group"], row["group"])
-    st.success(
-        f"**Cheapest tier that fits: {row['tier']} ({text_or(row['name'], '')})**\n\n"
+    best = candidates.loc[candidates["power_num"].idxmin()]
+    group_name = utils.GROUPS.get(best["group"], best["group"])
+    details = (
         f"- Group: {group_name}\n"
-        f"- K fold accuracy: {acc:.1f}%\n"
-        f"- Drop from the full set ({full_acc:.1f}%): {drop:.1f} points\n"
-        f"- Power: {power_text(row)}"
+        f"- LOSO accuracy: {best['loso_pct']:.1f}%\n"
+        f"- Points below the full set ({full_loso:.1f}%): {best['below_full']:.1f}\n"
+        f"- Power: {power_text(best)}"
     )
+    if best["borderline"]:
+        st.warning(
+            f"**Cheapest tier: {best['tier']} ({text_or(best['name'], '')}), reliable, but borderline**\n\n"
+            + details
+        )
+    else:
+        st.success(
+            f"**Cheapest reliable tier: {best['tier']} ({text_or(best['name'], '')})**\n\n" + details
+        )

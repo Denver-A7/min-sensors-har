@@ -46,6 +46,4 @@ UCI Machine Learning Repository. Human Activity Recognition Using Smartphones (d
 
 ## Team
 
-Andrew Rodricks, Ayham Abushanab, Charlie Morrow, Raiden De Luna, Denver Auncion.
-
-Course: ME 131, Professor Yunjian (Jojo) Qiu, SJSU.
+Andrew Rodricks, Ayham Abushanab, Charlie Morrow, Raiden De Luna, Denver Auncion

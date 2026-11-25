@@ -95,7 +95,7 @@ def show_status_table():
 
 # Four tabs, one for each part of the page.
 tab_project, tab_limits, tab_sources, tab_team = st.tabs(
-    ["The project", "Limits", "Sources", "Files"]
+    ["The project", "Limits", "Sources"]
 )
 
 # Tab 1: the project in 5 short numbered lines.
@@ -120,7 +120,4 @@ with tab_sources:
     for source in SOURCES:
         st.markdown("\\" + source)
 
-# Tab 4: team, course, and which result files are real.
-with tab_team:
-    st.subheader("Which result files are real")
-    show_status_table()
+

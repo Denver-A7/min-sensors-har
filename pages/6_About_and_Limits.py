@@ -122,8 +122,5 @@ with tab_sources:
 
 # Tab 4: team, course, and which result files are real.
 with tab_team:
-    st.subheader("Team")
-    st.write("Andrew Rodricks, Ayham Abushanab, Charlie Morrow, Raiden De Luna, Denver Auncion")
-    st.write("Course: ME 131, Professor Yunjian (Jojo) Qiu, SJSU")
     st.subheader("Which result files are real")
     show_status_table()

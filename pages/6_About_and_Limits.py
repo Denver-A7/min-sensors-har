@@ -93,8 +93,8 @@ def show_status_table():
     st.dataframe(build_status_table(real_files), hide_index=True, use_container_width=True)
 
 
-# Four tabs, one for each part of the page.
-tab_project, tab_limits, tab_sources, tab_team = st.tabs(
+# Three tabs, one for each part of the page.
+tab_project, tab_limits, tab_sources = st.tabs(
     ["The project", "Limits", "Sources"]
 )
 

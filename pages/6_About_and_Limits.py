@@ -95,7 +95,7 @@ def show_status_table():
 
 # Four tabs, one for each part of the page.
 tab_project, tab_limits, tab_sources, tab_team = st.tabs(
-    ["The project", "Limits", "Sources", "Team and files"]
+    ["The project", "Limits", "Sources", "Files"]
 )
 
 # Tab 1: the project in 5 short numbered lines.

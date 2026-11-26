@@ -99,16 +99,17 @@ fig.update_layout(
     template="plotly_dark",
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    title=dict(text="LOSO accuracy for each volunteer", font=dict(size=24)),
+    title=dict(text="LOSO accuracy for each volunteer", font=dict(size=17)),
     xaxis_title="Volunteer number",
     yaxis_title="Accuracy in %",
     xaxis=dict(type="category"),
     yaxis=dict(range=[0, 105]),
-    font=dict(size=16),
-    height=550,
+    font=dict(size=12),
+    margin=dict(l=10, r=10, t=40, b=10),
+    height=460,
 )
 utils.style_chart(fig)
-st.plotly_chart(fig, width="stretch")
+st.plotly_chart(fig, width="stretch", config=utils.MOBILE_CHART_CONFIG)
 
 # ---------- One volunteer ----------
 st.subheader("Look at one volunteer")

@@ -145,16 +145,24 @@ fig.update_layout(
     template="plotly_dark",
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    title=dict(text=title, font=dict(size=24)),
+    title=dict(text=title, font=dict(size=18)),
     xaxis_title="Number of features",
     yaxis_title=f"Accuracy in % ({test_short})",
-    font=dict(size=16),
-    legend=dict(title="Model"),
-    height=600,
+    font=dict(size=13),
+    legend=dict(
+        title="Model",
+        orientation="h",
+        yanchor="bottom",
+        y=-0.3,
+        xanchor="center",
+        x=0.5,
+    ),
+    margin=dict(b=90),
+    height=520,
 )
 utils.style_chart(fig)
 
-st.plotly_chart(fig, width="stretch")
+st.plotly_chart(fig, width="stretch", config=utils.MOBILE_CHART_CONFIG)
 
 # ---------- Table ----------
 st.subheader("All results")

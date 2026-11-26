@@ -149,7 +149,11 @@ def check_reliable(acc, full_acc, min_acc=RULE_MIN_ACC, max_drop=RULE_MAX_DROP):
     reliable = acc >= min_acc - 1e-9 and (full_acc - acc) <= max_drop + 1e-9
     borderline = reliable and acc < min_acc + RULE_BORDERLINE
     return reliable, borderline
+    
+MOBILE_CHART_CONFIG = {"displayModeBar": False, "responsive": True}
 
+def unit_symbol(u):
+    return "µA" if u == "uA" else u
 
 # Give a plotly chart the app font and very faint grid lines. Data and labels stay the same.
 def style_chart(fig):

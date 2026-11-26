@@ -150,15 +150,16 @@ fig.update_layout(
     yaxis_title=f"Accuracy in % ({test_short})",
     font=dict(size=13),
     legend=dict(
-        title="Model",
+        title=dict(text="Model", font=dict(size=11)),
+        font=dict(size=11),
         orientation="h",
-        yanchor="bottom",
+        yanchor="top",
         y=-0.3,
         xanchor="center",
         x=0.5,
     ),
-    margin=dict(b=90),
-    height=520,
+    margin=dict(b=170),
+    height=600,
 )
 utils.style_chart(fig)
 

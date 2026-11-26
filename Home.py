@@ -69,11 +69,11 @@ with st.container(key="main_results"):
             loso_full = rows.loc["both", "loso_acc_mean"] * 100
             reliable, borderline = utils.check_reliable(loso_acc, loso_full)
             if borderline:
-                rule_text = "reliable, but borderline"
+                rule_text = "Reliable, but borderline"
             elif reliable:
-                rule_text = "reliable"
+                rule_text = "Reliable"
             else:
-                rule_text = "not reliable"
+                rule_text = "Not reliable"
             l1, l2, l3 = st.columns(3)
             l1.metric("LOSO accuracy", f"{loso_acc:.1f}%")
             l2.metric("Points below the full set", f"{loso_full - loso_acc:.1f}")

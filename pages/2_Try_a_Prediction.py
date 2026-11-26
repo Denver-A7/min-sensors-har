@@ -141,15 +141,16 @@ if hasattr(model, "predict_proba"):
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        title=dict(text="Probability of each activity", font=dict(size=22)),
+        title=dict(text="Probability of each activity", font=dict(size=17)),
         xaxis_title="Probability in %",
         yaxis_title="Activity",
         xaxis=dict(range=[0, 110]),
-        font=dict(size=16),
-        height=420,
+        font=dict(size=13),
+        margin=dict(l=10, r=10, t=40, b=10),
+        height=380,
     )
     utils.style_chart(fig)
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, width="stretch", config=utils.MOBILE_CHART_CONFIG)
     st.caption("Yellow bar = the true activity.")
 else:
     st.info("The SVM gives only a predicted activity, no probability.")

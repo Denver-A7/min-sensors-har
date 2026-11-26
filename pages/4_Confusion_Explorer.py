@@ -110,11 +110,11 @@ fig = go.Figure(
         y=utils.ACTIVITIES,
         colorscale=[[0, "#0B1B3A"], [1, utils.BLUE]],
         texttemplate=text_format,
-        textfont=dict(size=16),
+        textfont=dict(size=11),
         hovertemplate="True: %{y}<br>Predicted: %{x}<br>Value: "
         + hover_format
         + "<extra></extra>",
-        colorbar=dict(title=dict(text=bar_title, font=dict(size=16))),
+        colorbar=dict(title=dict(text=bar_title, font=dict(size=12)), tickfont=dict(size=10)),
     )
 )
 
@@ -123,16 +123,18 @@ fig.update_layout(
     template="plotly_dark",
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(size=16),
-    height=650,
-    xaxis=dict(title=dict(text="Predicted activity", font=dict(size=18)), tickangle=-30),
+    font=dict(size=12),
+    height=550,
+    margin=dict(l=10, r=10, t=30, b=10),
+    xaxis=dict(title=dict(text="Predicted activity", font=dict(size=13)), tickangle=-30, tickfont=dict(size=10)),
     yaxis=dict(
-        title=dict(text="True activity", font=dict(size=18)),
+        title=dict(text="True activity", font=dict(size=13)),
+        tickfont=dict(size=10),
         autorange="reversed",
     ),
 )
 utils.style_chart(fig)
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, use_container_width=True, config=utils.MOBILE_CHART_CONFIG)
 
 # ---------- Most confused pairs ----------
 st.subheader("Most confused pairs")

@@ -150,6 +150,11 @@ fig.update_layout(
     yaxis_title=f"Accuracy in % ({test_short})",
     font=dict(size=13),
     legend=dict(
+    title=dict(text=title, font=dict(size=18)),
+    xaxis_title="Number of features",
+    yaxis_title=f"Accuracy in % ({test_short})",
+    font=dict(size=13),
+    legend=dict(
         title=dict(text="Model", font=dict(size=11), side="top center"),
         font=dict(size=11),
         orientation="h",

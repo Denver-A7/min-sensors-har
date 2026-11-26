@@ -63,7 +63,7 @@ def pct_or_na(value):
 def power_text(row):
     if pd.isna(row["power_value"]) or str(row["power_value"]).strip() == "":
         return "not filled yet"
-    parts = [str(row["power_value"]), text_or(row["power_unit"], "")]
+    parts = [str(row["power_value"]), utils.unit_symbol(text_or(row["power_unit"], ""))]
     return " ".join(p for p in parts if p)
 
 
@@ -136,7 +136,7 @@ st.dataframe(table, hide_index=True, use_container_width=True)
 # Note about where the power numbers come from.
 st.caption(
     "Sensor chip only (LSM6DSL, low-power mode, 52 Hz), from the datasheet. "
-    "The gyroscope value (265 uA) is calculated as 290 minus 25. "
+    "The gyroscope value (265 µA) is calculated as 290 minus 25. "
     "One chip is an example, not a rule. It is not the power of a whole device."
 )
 
@@ -164,7 +164,7 @@ else:
     )
     if best["borderline"]:
         st.warning(
-            f"**Cheapest tier: {best['tier']} ({text_or(best['name'], '')}), reliable, but borderline**\n\n"
+            f"**Cheapest tier: {best['tier']} ({text_or(best['name'], '')}), Reliable, but borderline**\n\n"
             + details
         )
     else:
